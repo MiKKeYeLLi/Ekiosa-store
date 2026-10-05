@@ -111,6 +111,11 @@ export interface CartSyncAdapter {
   /** The user id this device's cart was last merged for (persisted on device). */
   getSyncedUserId(): string | null;
   setSyncedUserId(id: string | null): void;
+  /**
+   * Optional live updates: subscribe to changes of this user's cart made on
+   * other devices (e.g. Supabase Realtime on `carts`). Returns an unsubscribe function.
+   */
+  subscribeRemote?(userId: string, onChange: () => void): () => void;
   onError?(err: unknown): void;
   debounceMs?: number;
 }
@@ -169,12 +174,39 @@ export function createCartSync(adapter: CartSyncAdapter) {
     }, delay);
   });
 
+  /** Pull the latest server cart, after pushing any pending local edit. */
+  const resume = async () => {
+    if (!userId) return;
+    await flush();
+    return queue(async () => {
+      if (!userId || timer) return; // a local edit started meanwhile — it will push
+      apply(await fetchServerCart(adapter.client));
+    });
+  };
+
+  // Live updates from other devices (coalesced, since one save can emit several events).
+  let remoteUnsubscribe: (() => void) | undefined;
+  let remoteTimer: ReturnType<typeof setTimeout> | undefined;
+  const watchRemote = (id: string | null) => {
+    remoteUnsubscribe?.();
+    remoteUnsubscribe = undefined;
+    if (!id || !adapter.subscribeRemote) return;
+    remoteUnsubscribe = adapter.subscribeRemote(id, () => {
+      if (remoteTimer) clearTimeout(remoteTimer);
+      remoteTimer = setTimeout(() => {
+        remoteTimer = undefined;
+        resume();
+      }, 150);
+    });
+  };
+
   return {
     /** Call with the signed-in user's id, or null when signed out. */
     setUser(nextId: string | null) {
       if (nextId === userId) return busy;
       const previous = userId;
       userId = nextId;
+      watchRemote(nextId);
       if (!nextId) {
         // Signed out: drop the account's cart from this device.
         if (previous || adapter.getSyncedUserId()) {
@@ -201,18 +233,13 @@ export function createCartSync(adapter: CartSyncAdapter) {
       });
     },
     /** Pull the latest server cart (e.g. when the app/tab comes back into focus). */
-    async resume() {
-      if (!userId) return;
-      await flush();
-      return queue(async () => {
-        if (!userId || timer) return; // a local edit started meanwhile — it will push
-        apply(await fetchServerCart(adapter.client));
-      });
-    },
+    resume,
     /** Push any pending change immediately (e.g. before checkout). */
     flush,
     dispose() {
       if (timer) clearTimeout(timer);
+      if (remoteTimer) clearTimeout(remoteTimer);
+      remoteUnsubscribe?.();
       unsubscribe();
     },
   };
