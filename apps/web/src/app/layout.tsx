@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { CartSync } from "@/components/cart/cart-sync";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { ToastProvider } from "@/components/ui/toast";
@@ -34,6 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           Skip to content
         </a>
         <ToastProvider>
+          <CartSync />
           <Navbar />
           <main id="main" className="flex-1">
             {children}

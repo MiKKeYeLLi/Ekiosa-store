@@ -8,6 +8,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useFonts, Geist_400Regular, Geist_500Medium, Geist_600SemiBold } from "@expo-google-fonts/geist";
 import { InstrumentSerif_400Regular, InstrumentSerif_400Regular_Italic } from "@expo-google-fonts/instrument-serif";
+import { CartSync } from "@/components/cart-sync";
 import { ToastProvider } from "@/components/ui/toast";
 import "@/lib/push"; // installs the foreground notification handler
 import { colors, fonts } from "@/theme";
@@ -52,6 +53,7 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <ToastProvider>
+            <CartSync />
             <StatusBar style="dark" />
             <Stack
               screenOptions={{

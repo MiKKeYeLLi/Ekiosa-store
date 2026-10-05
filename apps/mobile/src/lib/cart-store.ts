@@ -20,6 +20,10 @@ interface CartState {
   restore: (line: CartLine) => void;
   applyPromo: (promo: PromoCode | null) => void;
   clear: () => void;
+  /** Overwrite the whole cart (used by account sync). */
+  replace: (snapshot: { lines: CartLine[]; promo: PromoCode | null }) => void;
+  /** The account this device's cart was last merged into (see @ekiosa/shared/cart-sync). */
+  syncedUserId: string | null;
 }
 
 export const useCart = create<CartState>()(
@@ -75,11 +79,13 @@ export const useCart = create<CartState>()(
 
       applyPromo: (promo) => set({ promo }),
       clear: () => set({ lines: [], promo: null }),
+      replace: ({ lines, promo }) => set({ lines, promo }),
+      syncedUserId: null,
     }),
     {
       name: "ekiosa:cart:v1",
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: ({ lines, promo }) => ({ lines, promo }),
+      partialize: ({ lines, promo, syncedUserId }) => ({ lines, promo, syncedUserId }),
       onRehydrateStorage: () => () => useCart.setState({ hydrated: true }),
     },
   ),

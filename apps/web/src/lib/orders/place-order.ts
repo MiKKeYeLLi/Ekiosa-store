@@ -153,6 +153,14 @@ export async function placeOrderForUser(user: SessionUser, input: PlaceOrderInpu
 
   const created = (Array.isArray(data) ? data[0] : data) as { id: string; number: string };
 
+  // Empty the account cart (synced across web and mobile) now that it's been ordered.
+  const [items, meta] = await Promise.all([
+    admin.from("cart_items").delete().eq("user_id", user.id),
+    admin.from("carts").update({ promo_code: null, updated_at: new Date().toISOString() }).eq("user_id", user.id),
+  ]);
+  const cartError = items.error ?? meta.error;
+  if (cartError) console.warn("[checkout] couldn't clear account cart:", cartError.message);
+
   // Send the confirmation email and push after the response, so they never delay checkout.
   after(() => sendOrderConfirmation(created.id));
   after(() => sendOrderPush({ id: created.id, number: created.number, userId: user.id }, "confirmed"));
