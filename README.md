@@ -1,19 +1,34 @@
-# Loam — e-commerce storefront
+# Ekiosa — web store and Android app
 
-Next.js 16, React 19, Tailwind CSS v4 and TypeScript. The catalog, profiles and orders live in **Supabase**. **Google sign-in** (Supabase Auth) is required at checkout, and **Mailgun** sends order confirmations. Payments are still a placeholder (Stripe comes next).
+An npm-workspaces monorepo:
+
+| Path | What it is |
+| --- | --- |
+| `apps/web` | Next.js 16 storefront (deployed on Vercel). Also hosts the order API the app calls. |
+| `apps/mobile` | Expo (SDK 57) React Native app, Android first. |
+| `packages/shared` | Types, pricing, checkout validation, search params, catalog queries — used by both apps. |
+| `supabase/` | Database migrations and seed data. |
+
+The catalog, profiles, orders, wishlists and push tokens live in **Supabase**. **Google sign-in** (Supabase Auth) is required to check out. **Mailgun** sends order confirmations and **Expo push** sends order notifications. Payments are still a placeholder (Stripe comes next).
 
 ```bash
-npm install
-npm run dev               # http://localhost:3000
-npm run build             # production build
-npm run lint
-npm run db:seed:generate  # rebuild supabase/seed.sql from src/lib/data
+npm install                 # installs every workspace
+npm run dev:web             # web on http://localhost:3000
+npm run build:web
+npm run lint:web
+npm run typecheck           # all workspaces
+npm run dev:mobile          # Expo dev server (needs a development build — see "Mobile app")
+npm run db:apply            # apply new migrations (seeds only an empty catalog)
+npm run db:seed:generate    # rebuild supabase/seed.sql from apps/web/src/lib/data
 ```
+
+> **Vercel:** set the project's **Root Directory** to `apps/web`.
+> Web env vars live in `apps/web/.env.local` (see `apps/web/.env.example`).
 
 ## Setup
 
 ### 1. Environment
-Copy `.env.example` to `.env.local` and fill in the values. `SUPABASE_SERVICE_ROLE_KEY` and `MAILGUN_API_KEY` are server-only, so never give them a `NEXT_PUBLIC_` prefix.
+Copy `apps/web/.env.example` to `apps/web/.env.local` and fill in the values. `SUPABASE_SERVICE_ROLE_KEY` and `MAILGUN_API_KEY` are server-only, so never give them a `NEXT_PUBLIC_` prefix.
 
 ### 2. Supabase database
 In the Supabase dashboard → **SQL Editor**, run these in order:
@@ -67,6 +82,36 @@ If Mailgun isn't configured, orders still succeed and the server logs that the e
   - It then calls the `create_order` database function, which checks and decrements stock and inserts the order atomically.
 - **Orders:** `/order/[id]` and `/account` read orders under row-level security, so users only ever see their own.
 - **Email:** after an order is created, `after()` runs `sendOrderConfirmation` (`src/lib/email/*`). That sends through the Mailgun API and records `confirmation_email_sent_at`. A failed email is logged and never fails the order.
+
+## Mobile app (`apps/mobile`)
+
+Expo Router screens: Home, Shop (search, category chips, filter and sort sheets), Saved (wishlist), Bag (swipe to remove, promo, free-shipping progress) and Account (orders, sign-out), plus product, checkout, order and sign-in screens. It reads the catalog straight from Supabase with the shared query code, and places orders through the web app's **`POST /api/orders`**, so prices, stock checks and emails are identical to the website.
+
+### One-time setup
+1. **Config:** copy `apps/mobile/.env.example` to `apps/mobile/.env` and fill in the values. They are public (they ship in the app); never put the service-role key here. Set `EXPO_PUBLIC_API_URL` to your Vercel URL.
+2. **Expo / EAS:** `npm i -g eas-cli`, `eas login`, then in `apps/mobile` run `eas init` (adds the project ID push needs). Add the same `EXPO_PUBLIC_*` values as EAS environment variables (`eas env:create`) for cloud builds.
+3. **Google sign-in (native):**
+   - Get the Android signing SHA-1: `eas credentials -p android`.
+   - In Google Cloud → Credentials, create an **Android** OAuth client for package `market.ekiosa.app` with that SHA-1.
+   - In Supabase → Authentication → Providers → Google, add the Android client ID to **Authorized Client IDs** (comma-separated, next to the Web client ID).
+   - Set `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` to the **Web** client ID.
+4. **Push notifications (Android):**
+   - Create a Firebase project and add an Android app with package `market.ekiosa.app`.
+   - Upload the FCM V1 service-account key with `eas credentials -p android` → Push Notifications.
+   - "Order shipped" pushes: in Supabase → Database → Webhooks, add a webhook on `orders` for **UPDATE** that POSTs to `https://<site>/api/webhooks/order-status` with header `x-webhook-secret: <ORDER_WEBHOOK_SECRET>` (set the same secret in Vercel).
+5. Apply the mobile migration if you haven't: `npm run db:apply` (`supabase/migrations/0002_mobile.sql`: wishlist, push tokens, order statuses).
+
+### Build and run
+```bash
+cd apps/mobile
+eas build -p android --profile development   # install the dev build on your phone/emulator
+npx expo start                               # then open the dev build
+eas build -p android --profile preview       # shareable APK
+eas build -p android --profile production    # AAB for Google Play
+eas submit -p android                        # upload to the Play internal-testing track
+```
+
+Native Google sign-in and push need a **development build**; they don't work in Expo Go.
 
 ## Next: Stripe
 Replace `PaymentPlaceholder` with the Payment Element (or Stripe Checkout). Create the PaymentIntent inside `placeOrderAction` from the server-computed totals. Then move order creation and the confirmation email into the `payment_intent.succeeded` webhook.
