@@ -1,4 +1,4 @@
-import { categories } from "./data/categories";
+import { categories } from "./categories";
 import type { CategorySlug, ProductQuery, SortOption } from "./types";
 
 export const SORT_OPTIONS: { value: SortOption; label: string }[] = [

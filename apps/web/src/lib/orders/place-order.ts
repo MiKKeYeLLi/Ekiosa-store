@@ -1,8 +1,12 @@
-"use server";
-
+/**
+ * Order placement core, shared by the web server action and the mobile API
+ * route (POST /api/orders). Callers must authenticate the user first.
+ */
+import "server-only";
 import { after } from "next/server";
 import { sendOrderConfirmation } from "@/lib/email/send-order-confirmation";
-import { getUser } from "@/lib/auth/get-user";
+import { sendOrderPush } from "@/lib/push/send-push";
+import type { SessionUser } from "@/lib/auth/types";
 import { validateAll, type CheckoutFormValues } from "@/lib/checkout-validation";
 import { computeTotals, getShippingMethod, lookupPromoCode } from "@/lib/pricing";
 import { getProductsByIds } from "@/lib/services/catalog";
@@ -29,12 +33,28 @@ export type PlaceOrderResult =
 
 const SHIPPING_IDS: ShippingMethodId[] = ["standard", "express", "next-day"];
 
-export async function placeOrderAction(input: PlaceOrderInput): Promise<PlaceOrderResult> {
-  const user = await getUser();
-  if (!user) return { ok: false, code: "unauthenticated", message: "Please sign in to place your order." };
+export async function placeOrderForUser(user: SessionUser, input: PlaceOrderInput): Promise<PlaceOrderResult> {
+  if (!input || typeof input !== "object" || !input.values || typeof input.values !== "object") {
+    return { ok: false, code: "validation", message: "Invalid order request." };
+  }
 
   // ── Validate input (never trust the client) ──────────────────────
-  const values: CheckoutFormValues = { ...input.values, email: user.email || input.values.email };
+  // Coerce every field to the expected type — this input may come from an API request.
+  const raw = input.values as unknown as Record<string, unknown>;
+  const str = (key: keyof CheckoutFormValues) => (typeof raw[key] === "string" ? (raw[key] as string).slice(0, 200) : "");
+  const values: CheckoutFormValues = {
+    email: user.email || str("email"),
+    phone: str("phone"),
+    marketingOptIn: raw.marketingOptIn === true,
+    firstName: str("firstName"),
+    lastName: str("lastName"),
+    address1: str("address1"),
+    address2: str("address2"),
+    city: str("city"),
+    region: str("region"),
+    postalCode: str("postalCode"),
+    country: str("country"),
+  };
   const errors = validateAll(values);
   if (Object.keys(errors).length) {
     return { ok: false, code: "validation", message: "Some details are missing or invalid. Please review the form." };
@@ -43,7 +63,8 @@ export async function placeOrderAction(input: PlaceOrderInput): Promise<PlaceOrd
     return { ok: false, code: "validation", message: "Please choose a delivery method." };
   }
   const quantities = new Map<string, number>();
-  for (const item of input.items ?? []) {
+  for (const item of Array.isArray(input.items) ? input.items.slice(0, 50) : []) {
+    if (!item || typeof item !== "object") return { ok: false, code: "validation", message: "Your bag contains an invalid item." };
     const qty = Math.floor(Number(item.quantity));
     if (typeof item.productId !== "string" || !Number.isFinite(qty) || qty < 1 || qty > 99) {
       return { ok: false, code: "validation", message: "Your bag contains an invalid item." };
@@ -80,7 +101,7 @@ export async function placeOrderAction(input: PlaceOrderInput): Promise<PlaceOrd
   if (short) return outOfStock(short.name, short.maxQuantity);
 
   const method = getShippingMethod(input.shippingMethodId);
-  const promo = input.promoCode ? lookupPromoCode(input.promoCode) : null;
+  const promo = typeof input.promoCode === "string" && input.promoCode ? lookupPromoCode(input.promoCode) : null;
   const totals = computeTotals(lines, promo, method);
   const now = new Date();
 
@@ -132,8 +153,9 @@ export async function placeOrderAction(input: PlaceOrderInput): Promise<PlaceOrd
 
   const created = (Array.isArray(data) ? data[0] : data) as { id: string; number: string };
 
-  // Send the confirmation email after the response, so it never delays checkout.
+  // Send the confirmation email and push after the response, so they never delay checkout.
   after(() => sendOrderConfirmation(created.id));
+  after(() => sendOrderPush({ id: created.id, number: created.number, userId: user.id }, "confirmed"));
 
   return { ok: true, orderId: created.id, number: created.number };
 }

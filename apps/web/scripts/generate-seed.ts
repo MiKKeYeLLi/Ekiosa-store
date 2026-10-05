@@ -47,10 +47,11 @@ const lines: string[] = [
     )
     .join(",\n") +
     `
+-- stock is deliberately not updated on conflict: it reflects real orders.
 on conflict (id) do update set
   slug = excluded.slug, name = excluded.name, brand = excluded.brand, category = excluded.category,
   price = excluded.price, compare_at_price = excluded.compare_at_price, rating = excluded.rating,
-  review_count = excluded.review_count, stock = excluded.stock, short_description = excluded.short_description,
+  review_count = excluded.review_count, short_description = excluded.short_description,
   description = excluded.description, highlights = excluded.highlights, details = excluded.details,
   images = excluded.images, tags = excluded.tags, created_at = excluded.created_at;`,
   "",
@@ -58,6 +59,6 @@ on conflict (id) do update set
   "",
 ];
 
-const out = join(import.meta.dirname, "..", "supabase", "seed.sql");
+const out = join(import.meta.dirname, "..", "..", "..", "supabase", "seed.sql");
 writeFileSync(out, lines.join("\n"));
 console.log(`Wrote ${categories.length} categories and ${products.length} products to ${out}`);

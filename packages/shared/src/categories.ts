@@ -1,4 +1,4 @@
-import type { Category } from "../types";
+import type { Category } from "./types";
 import { unsplash } from "./images";
 
 export const categories: Category[] = [

@@ -1,12 +1,12 @@
 /**
- * Applies supabase/migrations/*.sql (once each) and then supabase/seed.sql.
+ * Applies supabase/migrations/*.sql (once each), then seeds an empty catalog from supabase/seed.sql.
  * Run with: npm run db:apply   (needs SUPABASE_DB_URL in .env.local)
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Client } from "pg";
 
-const root = join(import.meta.dirname, "..", "supabase");
+const root = join(import.meta.dirname, "..", "..", "..", "supabase");
 const url = process.env.SUPABASE_DB_URL;
 if (!url) {
   console.error("Set SUPABASE_DB_URL in .env.local first.");
@@ -41,10 +41,14 @@ async function main() {
     }
   }
 
-  // Seed is idempotent (upserts), so it is safe to re-run.
-  await client.query(readFileSync(join(root, "seed.sql"), "utf8"));
-  const { rows } = await client.query<{ n: string }>("select count(*)::text as n from public.products");
-  console.log(`✓ seed.sql applied — ${rows[0].n} products`);
+  // Seed only an empty catalog, unless --seed is passed (never touches stock either way).
+  const count = async () => (await client.query<{ n: string }>("select count(*)::text as n from public.products")).rows[0].n;
+  if ((await count()) === "0" || process.argv.includes("--seed")) {
+    await client.query(readFileSync(join(root, "seed.sql"), "utf8"));
+    console.log(`✓ seed.sql applied — ${await count()} products`);
+  } else {
+    console.log(`✓ catalog already has ${await count()} products — seed skipped (pass --seed to refresh product details)`);
+  }
 
   // Ask PostgREST to pick up the new tables immediately.
   await client.query("notify pgrst, 'reload schema'");

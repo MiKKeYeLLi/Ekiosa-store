@@ -142,11 +142,13 @@ export interface CheckoutPayload {
   simulateFailure?: boolean;
 }
 
+export type OrderStatus = "confirmed" | "shipped" | "delivered" | "cancelled";
+
 export interface Order {
   id: string;
   number: string;
   createdAt: string;
-  status: "confirmed";
+  status: OrderStatus;
   contact: ContactInfo;
   shippingAddress: ShippingAddress;
   shippingMethod: ShippingMethod;

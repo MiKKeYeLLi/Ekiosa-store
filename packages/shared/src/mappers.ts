@@ -1,5 +1,5 @@
 /** Convert database rows (snake_case) into the app's domain types. */
-import type { CartLine, Category, CategorySlug, Order, Product, ProductTag, PromoCode, ShippingAddress, ShippingMethod } from "../types";
+import type { CartLine, Category, CategorySlug, Order, Product, ProductTag, PromoCode, ShippingAddress, ShippingMethod } from "./types";
 
 export const PRODUCT_COLUMNS =
   "id, slug, name, brand, category, price, compare_at_price, rating, review_count, stock, short_description, description, highlights, details, images, tags, created_at";
@@ -106,7 +106,7 @@ export function toOrder(r: OrderRow): Order {
     id: r.id,
     number: r.number,
     createdAt: r.created_at,
-    status: "confirmed",
+    status: (["confirmed", "shipped", "delivered", "cancelled"].includes(r.status) ? r.status : "confirmed") as Order["status"],
     contact: { email: r.email, phone: r.phone ?? undefined, marketingOptIn: r.marketing_opt_in },
     shippingAddress: r.shipping_address,
     shippingMethod: r.shipping_method,
