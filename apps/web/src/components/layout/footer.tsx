@@ -21,7 +21,7 @@ const columns = [
   {
     title: "Company",
     links: [
-      { label: "About Loam", href: "/" },
+      { label: "About Ekiosa", href: "/" },
       { label: "Sustainability", href: "/" },
       { label: "Careers", href: "/" },
       { label: "Journal", href: "/" },
@@ -34,7 +34,7 @@ export function Footer() {
   if (pathname.startsWith("/checkout")) {
     return (
       <footer className="border-t border-line py-8 text-center text-xs text-ink-muted">
-        © {new Date().getFullYear()} Loam Goods Co. · Secure checkout
+        © {new Date().getFullYear()} Ekiosa · Secure checkout
       </footer>
     );
   }
@@ -68,7 +68,7 @@ export function Footer() {
       </div>
       <div className="border-t border-line">
         <div className="container-page flex flex-col gap-4 py-6 text-xs text-ink-muted sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} Loam Goods Co. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Ekiosa All rights reserved.</p>
           <div className="flex flex-wrap gap-x-6 gap-y-2">
             <Link href="/" className="hover:text-ink">Privacy</Link>
             <Link href="/" className="hover:text-ink">Terms</Link>

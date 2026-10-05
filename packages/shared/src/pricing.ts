@@ -29,7 +29,9 @@ export function getShippingMethod(id: ShippingMethodId): ShippingMethod {
 /** Demo promo codes. Replace with a server-side lookup (e.g. Stripe Promotion Codes). */
 const PROMO_CODES: Record<string, PromoCode> = {
   WELCOME10: { code: "WELCOME10", percentOff: 10, label: "10% off your first order" },
-  LOAM20: { code: "LOAM20", percentOff: 20, label: "20% off — friends of Loam" },
+  EKIOSA20: { code: "EKIOSA20", percentOff: 20, label: "20% off — friends of Ekiosa" },
+  // Legacy code from before the rename; still honoured.
+  LOAM20: { code: "LOAM20", percentOff: 20, label: "20% off — friends of Ekiosa" },
 };
 
 export function lookupPromoCode(raw: string): PromoCode | null {

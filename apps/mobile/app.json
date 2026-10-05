@@ -14,7 +14,7 @@
     "android": {
       "package": "market.ekiosa.app",
       "adaptiveIcon": {
-        "backgroundColor": "#1F3D33",
+        "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -28,15 +28,16 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#FBFAF8",
+          "backgroundColor": "#FFFFFF",
           "image": "./assets/splash-icon.png",
-          "imageWidth": 160
+          "imageWidth": 220
         }
       ],
       [
         "expo-notifications",
         {
-          "color": "#1F3D33"
+          "color": "#007D16",
+          "icon": "./assets/android-icon-monochrome.png"
         }
       ],
       "@react-native-google-signin/google-signin"
