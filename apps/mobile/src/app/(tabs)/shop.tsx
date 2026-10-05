@@ -20,18 +20,21 @@ export default function ShopScreen() {
   const params = useLocalSearchParams<{ category?: string; sort?: string; sale?: string; q?: string }>();
 
   // Route params (from Home links) seed the filters; afterwards the screen owns them.
-  const initial = useMemo(
-    () => parseProductQuery(new URLSearchParams(Object.entries(params).filter(([, v]) => typeof v === "string") as [string, string][])),
-    [params],
-  );
+  // useLocalSearchParams returns a new object every render, so compare by content
+  // (a stable string key) — comparing objects caused an infinite re-render loop.
+  const paramsKey = new URLSearchParams(
+    Object.entries(params).filter(([, v]) => typeof v === "string") as [string, string][],
+  ).toString();
+  const initial = useMemo(() => parseProductQuery(new URLSearchParams(paramsKey)), [paramsKey]);
   const [query, setQuery] = useState<ProductQuery>(initial);
-  const [prevInitial, setPrevInitial] = useState(initial);
-  if (prevInitial !== initial) {
-    setPrevInitial(initial);
+  const [text, setText] = useState(initial.q ?? "");
+  const [prevKey, setPrevKey] = useState(paramsKey);
+  if (prevKey !== paramsKey) {
+    setPrevKey(paramsKey);
     setQuery(initial);
+    setText(initial.q ?? "");
   }
 
-  const [text, setText] = useState(initial.q ?? "");
   useEffect(() => {
     const t = setTimeout(() => setQuery((q) => ({ ...q, q: text.trim() || undefined })), 300);
     return () => clearTimeout(t);
