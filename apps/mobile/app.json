@@ -1,0 +1,55 @@
+{
+  "expo": {
+    "name": "Ekiosa",
+    "slug": "ekiosa",
+    "scheme": "ekiosa",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "bundleIdentifier": "market.ekiosa.app",
+      "supportsTablet": false
+    },
+    "android": {
+      "package": "market.ekiosa.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#1F3D33",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-sqlite",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FBFAF8",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 160
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#1F3D33"
+        }
+      ],
+      "@react-native-google-signin/google-signin"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "owner": "mikeyvelli",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "75a635cd-432e-4f6d-87d8-506a86effb05"
+      }
+    }
+  }
+}

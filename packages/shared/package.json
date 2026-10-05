@@ -1,0 +1,15 @@
+{
+  "name": "@ekiosa/shared",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Types, pricing, validation and catalog queries shared by the Ekiosa web and mobile apps.",
+  "exports": {
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}
