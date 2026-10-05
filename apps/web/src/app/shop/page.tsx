@@ -5,7 +5,7 @@ import { ShopView } from "./shop-view";
 
 export const metadata: Metadata = {
   title: "Shop all",
-  description: "Browse the full Loam collection — apparel, footwear, accessories, audio, home and beauty.",
+  description: "Browse the full Ekiosa collection — apparel, footwear, accessories, audio, home and beauty.",
 };
 
 export default async function ShopPage({ searchParams }: PageProps<"/shop">) {

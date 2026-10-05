@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { Capriola, Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import { CartSync } from "@/components/cart/cart-sync";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
@@ -8,6 +8,7 @@ import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+const capriola = Capriola({ variable: "--font-capriola", subsets: ["latin"], weight: "400" });
 const instrumentSerif = Instrument_Serif({
   variable: "--font-instrument-serif",
   subsets: ["latin"],
@@ -16,7 +17,7 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: { default: "Loam — Considered goods for everyday living", template: "%s · Loam" },
+  title: { default: "Ekiosa — Considered goods for everyday living", template: "%s · Ekiosa" },
   description: "Apparel, footwear, home and beauty essentials — made to last and priced honestly.",
 };
 
@@ -26,7 +27,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} h-full antialiased`}>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} ${capriola.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
         <a
           href="#main"

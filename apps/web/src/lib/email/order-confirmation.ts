@@ -66,7 +66,7 @@ export function renderOrderConfirmation(order: Order, siteUrl: string): { subjec
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.canvas}">
     <tr><td align="center" style="padding:32px 16px">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px">
-        <tr><td style="padding:0 4px 24px;font-family:Georgia,'Times New Roman',serif;font-size:28px;color:${C.ink}">Loam<span style="color:${C.brand}">.</span></td></tr>
+        <tr><td style="padding:0 4px 24px;font-family:Arial,Helvetica,sans-serif;font-size:28px;font-weight:700;letter-spacing:-0.5px;color:#007d16">ekiosa</td></tr>
         <tr><td style="background:${C.surface};border:1px solid ${C.line};border-radius:20px;padding:32px 28px">
           <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:${C.success}">Order confirmed</p>
           <h1 style="margin:0 0 12px;font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:30px;line-height:1.15;color:${C.ink}">Thank you, ${esc(a.firstName)}.</h1>
@@ -105,7 +105,7 @@ export function renderOrderConfirmation(order: Order, siteUrl: string): { subjec
           </table>
         </td></tr>
         <tr><td style="padding:24px 4px;font-size:12px;line-height:1.6;color:${C.muted}">
-          Questions? Just reply to this email.<br>© ${new Date().getFullYear()} Loam Goods Co.
+          Questions? Just reply to this email.<br>© ${new Date().getFullYear()} Ekiosa
         </td></tr>
       </table>
     </td></tr>
@@ -135,5 +135,5 @@ export function renderOrderConfirmation(order: Order, siteUrl: string): { subjec
     `View your order: ${orderUrl}`,
   ].join("\n");
 
-  return { subject: `Your Loam order ${order.number} is confirmed`, html, text };
+  return { subject: `Your Ekiosa order ${order.number} is confirmed`, html, text };
 }

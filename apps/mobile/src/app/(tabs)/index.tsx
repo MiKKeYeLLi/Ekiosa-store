@@ -1,5 +1,6 @@
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
 import { Link, router } from "expo-router";
+import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { unsplash } from "@ekiosa/shared/images";
@@ -23,9 +24,13 @@ export default function HomeScreen() {
     >
       {/* Header */}
       <View style={styles.header}>
-        <Text style={{ fontFamily: fonts.display, fontSize: 30, color: colors.ink }}>
-          Ekiosa<Text style={{ color: colors.brand, fontFamily: fonts.display, fontSize: 30 }}>.</Text>
-        </Text>
+        <Image
+          source={require("../../../assets/logo-wordmark.png")}
+          accessibilityRole="image"
+          accessibilityLabel="Ekiosa"
+          contentFit="contain"
+          style={{ width: 96, height: 42 }}
+        />
         <Pressable accessibilityRole="search" accessibilityLabel="Search products" onPress={() => router.push("/search")} style={styles.searchPill}>
           <Feather name="search" size={16} color={colors.inkMuted} />
           <Text variant="caption">Search products</Text>
