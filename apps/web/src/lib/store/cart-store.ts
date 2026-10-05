@@ -138,4 +138,30 @@ export const cartStore = {
   clear() {
     setState({ lines: [], promo: null });
   },
+
+  /** Overwrite the whole cart (used by account sync). */
+  replace(snapshot: { lines: CartLine[]; promo: PromoCode | null }) {
+    setState({ lines: snapshot.lines, promo: snapshot.promo });
+  },
+};
+
+const SYNCED_USER_KEY = "loam:cart:synced-user";
+
+/** The account this device's cart was last merged into (see @ekiosa/shared/cart-sync). */
+export const syncedUser = {
+  get(): string | null {
+    try {
+      return localStorage.getItem(SYNCED_USER_KEY);
+    } catch {
+      return null;
+    }
+  },
+  set(id: string | null) {
+    try {
+      if (id) localStorage.setItem(SYNCED_USER_KEY, id);
+      else localStorage.removeItem(SYNCED_USER_KEY);
+    } catch {
+      // storage unavailable — sync still works for this session
+    }
+  },
 };
