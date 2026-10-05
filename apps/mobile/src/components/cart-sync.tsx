@@ -28,6 +28,16 @@ export function CartSync() {
         }),
       getSyncedUserId: () => useCart.getState().syncedUserId,
       setSyncedUserId: (id) => useCart.setState({ syncedUserId: id }),
+      // Live updates when the cart changes on another device (e.g. checkout on the website).
+      subscribeRemote: (userId, onChange) => {
+        const channel = supabase
+          .channel(`cart:${userId}`)
+          .on("postgres_changes", { event: "*", schema: "public", table: "carts", filter: `user_id=eq.${userId}` }, onChange)
+          .subscribe();
+        return () => {
+          supabase.removeChannel(channel);
+        };
+      },
       onError: (err) => console.warn("[cart-sync]", err instanceof Error ? err.message : err),
     });
 

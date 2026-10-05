@@ -24,6 +24,16 @@ export function CartSync() {
       subscribeLocal: (listener) => cartStore.subscribe(listener),
       getSyncedUserId: syncedUser.get,
       setSyncedUserId: syncedUser.set,
+      // Live updates when the cart changes on another device (e.g. checkout in the app).
+      subscribeRemote: (userId, onChange) => {
+        const channel = supabase
+          .channel(`cart:${userId}`)
+          .on("postgres_changes", { event: "*", schema: "public", table: "carts", filter: `user_id=eq.${userId}` }, onChange)
+          .subscribe();
+        return () => {
+          supabase.removeChannel(channel);
+        };
+      },
       onError: (err) => console.warn("[cart-sync]", err instanceof Error ? err.message : err),
     });
 
